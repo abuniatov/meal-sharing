@@ -11,14 +11,14 @@ app.use(bodyParser.json());
 
 const apiRouter = express.Router();
 
-// You can delete this route once you add your own routes
-apiRouter.get("/", async (req, res) => {
-  const SHOW_TABLES_QUERY =
-    process.env.DB_CLIENT === "pg"
-      ? "SELECT * FROM pg_catalog.pg_tables;"
-      : "SHOW TABLES;";
-  const tables = await knex.raw(SHOW_TABLES_QUERY);
-  res.json({ tables });
+app.get("/future-meals", async (req, res) => {
+  try {
+    const now = new Date().toISOString();
+    const meals = await knex.raw("SELECT * FROM meal WHERE `when` > ?", [now]);
+    res.json(meals[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // This nested router example can also be replaced with your own sub-router
