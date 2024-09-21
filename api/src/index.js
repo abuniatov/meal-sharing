@@ -22,6 +22,17 @@ app.get("/future-meals", async (req, res) => {
   }
 });
 
+// Respond with all meals in the past (relative to the when datetime)
+app.get("/past-meals", async (req, res) => {
+  try {
+    const now = new Date().toISOString();
+    const meals = await knex("meal").where("when", "<", now);
+    res.json(meals);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // This nested router example can also be replaced with your own sub-router
 apiRouter.use("/nested", nestedRouter);
 
