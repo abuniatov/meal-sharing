@@ -47,6 +47,9 @@ app.get("/all-meals", async (req, res) => {
 app.get("/meals/first-meal", async (req, res) => {
   try {
     const firstMeal = await knex("meal").orderBy("id").first();
+    if (!firstMeal) {
+      return res.status(404).json({ error: "No meals found" });
+    }
     res.json(firstMeal);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -57,6 +60,9 @@ app.get("/meals/first-meal", async (req, res) => {
 app.get("/meals/last-meal", async (req, res) => {
   try {
     const lastMeal = await knex("meal").orderBy("id", "desc").first();
+    if (!lastMeal) {
+      return res.status(404).json({ error: "No meals found" });
+    }
     res.json(lastMeal);
   } catch (error) {
     res.status(500).json({ error: error.message });
