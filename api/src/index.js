@@ -11,11 +11,12 @@ app.use(bodyParser.json());
 
 const apiRouter = express.Router();
 
+// Respond with all meals in the future (relative to the when datetime)
 app.get("/future-meals", async (req, res) => {
   try {
     const now = new Date().toISOString();
-    const meals = await knex.raw("SELECT * FROM meal WHERE `when` > ?", [now]);
-    res.json(meals[0]);
+    const meals = await knex("meal").where("when", ">", now);
+    res.json(meals);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
