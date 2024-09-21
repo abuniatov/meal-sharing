@@ -43,6 +43,16 @@ app.get("/all-meals", async (req, res) => {
   }
 });
 
+// Respond with the first meal (meaning with the minimum id)
+app.get("/meals/first-meal", async (req, res) => {
+  try {
+    const firstMeal = await knex("meal").orderBy("id").first();
+    res.json(firstMeal);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // This nested router example can also be replaced with your own sub-router
 apiRouter.use("/nested", nestedRouter);
 
