@@ -15,8 +15,8 @@ const apiRouter = express.Router();
 app.get("/future-meals", async (req, res) => {
   try {
     const now = new Date().toISOString();
-    const meals = await knex("meal").where("when", ">", now);
-    res.json(meals);
+    const futureMeals = await knex("meal").where("when", ">", now);
+    res.json(futureMeals);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -26,8 +26,18 @@ app.get("/future-meals", async (req, res) => {
 app.get("/past-meals", async (req, res) => {
   try {
     const now = new Date().toISOString();
-    const meals = await knex("meal").where("when", "<", now);
-    res.json(meals);
+    const pastMeals = await knex("meal").where("when", "<", now);
+    res.json(pastMeals);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Respond with all meals sorted by ID
+app.get("/all-meals", async (req, res) => {
+  try {
+    const allMeals = await knex("meal").orderBy("id");
+    res.json(allMeals);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
