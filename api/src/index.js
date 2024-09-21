@@ -9,6 +9,14 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(err.status || 500).json({
+    error: err.message || "Internal Server Error",
+  });
+});
+
 const apiRouter = express.Router();
 
 // Respond with all meals in the future (relative to the when datetime)
@@ -44,15 +52,16 @@ app.get("/all-meals", async (req, res) => {
 });
 
 // Respond with the first meal (meaning with the minimum id)
-app.get("/meals/first-meal", async (req, res) => {
+app.get("/meals/first-meal", async (req, res, next) => {
   try {
     const firstMeal = await knex("meal").orderBy("id").first();
     if (!firstMeal) {
+      const 
       return res.status(404).json({ error: "No meals found" });
     }
     res.json(firstMeal);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 });
 
