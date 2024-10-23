@@ -4,10 +4,14 @@ import cors from "cors";
 import bodyParser from "body-parser";
 import knex from "./database_client.js";
 import nestedRouter from "./routers/nested.js";
+import mealsRouter from "./routers/meals.js";
+import reservationsRouter from "./routers/reservations.js";
 
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
+app.use("/api/meals", mealsRouter);
+app.use("/api/reservations", reservationsRouter);
 
 const apiRouter = express.Router();
 
@@ -52,7 +56,7 @@ app.get("/meals/first-meal", async (req, res, next) => {
       error.status = 404;
       return next(error);
     }
-    res.json(meal);
+    res.json(firstMeal);
   } catch (error) {
     next(error);
   }
@@ -67,7 +71,7 @@ app.get("/meals/last-meal", async (req, res, next) => {
       error.status = 404;
       return next(error);
     }
-    res.json(meal);
+    res.json(lastMeal);
   } catch (error) {
     next(error);
   }
@@ -75,14 +79,18 @@ app.get("/meals/last-meal", async (req, res, next) => {
 
 // This nested router example can also be replaced with your own sub-router
 apiRouter.use("/nested", nestedRouter);
-
 app.use("/api", apiRouter);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
+
+  if (err.status === 404) {
+    return res.status(404).json({ error: "Resource not found" });
+  }
+
   res.status(err.status || 500).json({
-    error: err.message || "Internal Server Error",
+    error: "An error occurred. Please try again later.",
   });
 });
 
