@@ -6,17 +6,22 @@ import knex from "./database_client.js";
 import nestedRouter from "./routers/nested.js";
 import mealsRouter from "./routers/meals.js";
 import reservationsRouter from "./routers/reservations.js";
+import reviewRouter from "./routers/reviews.js";
 
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
+
+// Mount routers under /api
 app.use("/api/meals", mealsRouter);
 app.use("/api/reservations", reservationsRouter);
+app.use("/api/reviews", reviewRouter);
 
+// API Router
 const apiRouter = express.Router();
 
-// Respond with all meals in the future (relative to the when datetime)
-app.get("/future-meals", async (req, res, next) => {
+// Respond with all future meals
+apiRouter.get("/future-meals", async (req, res, next) => {
   try {
     const now = new Date().toISOString();
     const futureMeals = await knex("meal").where("when", ">", now);
@@ -26,8 +31,8 @@ app.get("/future-meals", async (req, res, next) => {
   }
 });
 
-// Respond with all meals in the past (relative to the when datetime)
-app.get("/past-meals", async (req, res, next) => {
+// Respond with all past meals
+apiRouter.get("/past-meals", async (req, res, next) => {
   try {
     const now = new Date().toISOString();
     const pastMeals = await knex("meal").where("when", "<", now);
@@ -38,7 +43,7 @@ app.get("/past-meals", async (req, res, next) => {
 });
 
 // Respond with all meals sorted by ID
-app.get("/all-meals", async (req, res, next) => {
+apiRouter.get("/all-meals", async (req, res, next) => {
   try {
     const allMeals = await knex("meal").orderBy("id");
     res.json(allMeals);
@@ -47,14 +52,12 @@ app.get("/all-meals", async (req, res, next) => {
   }
 });
 
-// Respond with the first meal (meaning with the minimum id)
-app.get("/meals/first-meal", async (req, res, next) => {
+// Respond with the first meal
+apiRouter.get("/first-meal", async (req, res, next) => {
   try {
     const firstMeal = await knex("meal").orderBy("id").first();
     if (!firstMeal) {
-      const error = new Error("No meals found");
-      error.status = 404;
-      return next(error);
+      return res.status(404).json({ error: "No meals found" });
     }
     res.json(firstMeal);
   } catch (error) {
@@ -62,14 +65,12 @@ app.get("/meals/first-meal", async (req, res, next) => {
   }
 });
 
-// Respond with the last meal (meaning with the maximum id)
-app.get("/meals/last-meal", async (req, res, next) => {
+// Respond with the last meal
+apiRouter.get("/last-meal", async (req, res, next) => {
   try {
     const lastMeal = await knex("meal").orderBy("id", "desc").first();
     if (!lastMeal) {
-      const error = new Error("No meals found");
-      error.status = 404;
-      return next(error);
+      return res.status(404).json({ error: "No meals found" });
     }
     res.json(lastMeal);
   } catch (error) {
@@ -77,7 +78,7 @@ app.get("/meals/last-meal", async (req, res, next) => {
   }
 });
 
-// This nested router example can also be replaced with your own sub-router
+// Nested router example
 apiRouter.use("/nested", nestedRouter);
 app.use("/api", apiRouter);
 

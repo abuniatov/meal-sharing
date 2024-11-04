@@ -3,11 +3,54 @@ import knex from "../database_client.js";
 
 const router = express.Router();
 
-// Returns all meals
+// Returns all meals with query parameters for filtering and sorting
 router.get("/", async (req, res, next) => {
   try {
-    const allMeals = await knex("meal");
-    res.json(allMeals);
+    let query = knex("meal");
+
+    // Filtering by maxPrice
+    if (req.query.maxPrice) {
+      query = query.where("price", "<=", req.query.maxPrice);
+    }
+
+    // Filtering by availableReservations
+    if (req.query.availableReservations) {
+      const available = req.query.availableReservations === "true";
+      if (available) {
+        query = query.where("available_spots", ">", 0);
+      } else {
+        query = query.where("available_spots", "=", 0);
+      }
+    }
+
+    // Filtering by title
+    if (req.query.title) {
+      query = query.where("title", "like", `%${req.query.title}%`);
+    }
+
+    // Filtering by dateAfter
+    if (req.query.dateAfter) {
+      query = query.where("when", ">", req.query.dateAfter);
+    }
+
+    // Filtering by dateBefore
+    if (req.query.dateBefore) {
+      query = query.where("when", "<", req.query.dateBefore);
+    }
+
+    // Sorting by sortKey and sortDir
+    if (req.query.sortKey) {
+      const sortDir = req.query.sortDir || "asc"; // Default to ascending
+      query = query.orderBy(req.query.sortKey, sortDir);
+    }
+
+    // Limiting the number of meals
+    if (req.query.limit) {
+      query = query.limit(parseInt(req.query.limit));
+    }
+
+    const meals = await query;
+    res.json(meals);
   } catch (error) {
     next(error);
   }
