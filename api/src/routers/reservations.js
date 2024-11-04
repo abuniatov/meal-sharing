@@ -16,9 +16,17 @@ router.get("/", async (req, res, next) => {
 // Insert new reservation
 router.post("/", async (req, res, next) => {
   try {
-    const newReservation = await knex("reservation").insert(req.body);
-    const [reservationId] = newReservation;
-    res.status(201).json({ message: "Reservation created", id: reservationId });
+    const newReservation = req.body;
+
+    // Validation for required fields
+    const [reservationId] = await knex("reservation").insert(newReservation);
+    if (reservationId) {
+      res
+        .status(201)
+        .json({ message: "Reservation created", id: reservationId });
+    } else {
+      res.status(400).json({ message: "Failed to create reservation" });
+    }
   } catch (error) {
     next(error);
   }
@@ -45,7 +53,9 @@ router.put("/:id", async (req, res, next) => {
   try {
     const id = req.params.id;
     const updatedReservation = req.body;
-    const result = await knex("Reservation")
+
+    // Validation for required fields
+    const result = await knex("reservation")
       .where("id", id)
       .update(updatedReservation);
 
@@ -66,11 +76,10 @@ router.delete("/:id", async (req, res, next) => {
       .where("id", req.params.id)
       .del();
     if (!deletedReservation) {
-      const error = new Error("Reservation not found");
-      error.status = 404;
-      return next(error);
+      res.status(404).json({ message: "Reservation not found" });
+    } else {
+      res.status(200).json({ message: "Reservation deleted successfully" });
     }
-    res.status(200).json({ message: "Reservation deleted successfully" });
   } catch (error) {
     next(error);
   }
